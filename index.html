@@ -5,14 +5,16 @@
     <title>Test MIME-Type Support of your MediaRecorder</title>
     <style>
       body {
-        font-family: 'Roboto', sans;
+        font-family: 'Roboto', Sans-Serif;
         font-size: 16px;
       }
       h1 {
         font-size: 28px;
       }
       h2 {
-        font-size: 24px;
+        margin-top: 30px;
+        font-size: 22px;
+        margin-bottom: 10px;
       }
       .icon {
         font-size: 22px;
@@ -31,93 +33,10 @@
   <body>
     <h1>Test MIME-Type Support of your MediaRecorder</h1>
     <div id="results"></div>
-    <script>
-      const out = document.getElementById('results');
-      const sym = b => b
-        ? '<span class="icon" style="color:green;">✔</span>'
-        : '<span class="icon" style="color:red;">✘</span>';
-
-      // Base Support
-      const isMediaRecorderSupported = typeof MediaRecorder !== 'undefined';
-      const isUserCaptureSupported = 'mediaDevices' in navigator
-        && 'getUserMedia' in navigator.mediaDevices;
-      const isDisplayCaptureSupported = 'mediaDevices' in navigator
-        && 'getDisplayMedia' in navigator.mediaDevices;
-
-      const baseOut = `
-        <h2>Base support</h2>
-        <table>
-          <tbody>
-            <tr>
-              <td>${sym(isMediaRecorderSupported)}</td>
-              <td><code>MediaRecorder</code></td>
-            </tr>
-            <tr>
-              <td>${sym(isUserCaptureSupported)}</td>
-              <td><code>getUserMedia</code></td>
-            </tr>
-            <tr>
-              <td>${sym(isDisplayCaptureSupported)}</td>
-              <td><code>getDisplayMedia</code></td>
-            </tr>
-          </tbody>
-        </table>
-      `;
-
-      // MIME Types
-      const canCheckMime = isMediaRecorderSupported && 'isTypeSupported' in MediaRecorder;
-
-      let mimeOut;
-      if (canCheckMime) {
-        let mimeRows = "";
-        const mimes = [
-          'video/webm',
-          'video/webm;codecs="vp9"',
-          'video/webm;codecs="vp8"',
-          'video/webm;codecs="h264"',
-          'video/webm;codecs="avc1"',
-          'audio/webm',
-          'audio/webm;codecs="opus"',
-          'audio/webm;codecs="vorbis"',
-          'video/x-matroska',
-          'video/x-matroska;codecs="avc1"',
-          'video/mp4',
-          'video/mp4;codecs="vp9"',
-          'video/mp4;codecs="vp8"',
-          'video/mp4;codecs="h264"',
-          'video/mp4;codecs="avc1"',
-        ];
-
-        for (const mime of mimes) {
-          const isSupported = MediaRecorder.isTypeSupported(mime);
-          mimeRows += `
-            <tr>
-              <td>${sym(isSupported)}</td>
-              <td><code>${mime}</code></td>
-            </tr>
-          `;
-        }
-
-        mimeOut = `
-          <h2>MIME-Types</h2>
-          (Tested with <code>MediaRecorder.isTypeSupported</code>)
-          <br>
-          <br>
-          <table>
-            <tbody>
-              ${mimeRows}
-            </tbody>
-          </table>
-        `;
-      } else {
-        mimeOut = `
-          <h2>MIME-Types</h2>
-          <code>MediaRecorder.isTypeSupported</code> is not supported by your browser :(
-        `;
-      }
-
-
-      out.innerHTML = baseOut + mimeOut;
-    </script>
+    <div style="visibility: hidden; height: 0;">
+      <video crossorigin="anonymous" src="video-only.mp4" id="videoOnlyInput" />
+      <video crossorigin="anonymous" src="with-audio.mp4" id="withAudioInput" />
+    </div>
+    <script src="index.js"></script>
   </body>
 </html>
