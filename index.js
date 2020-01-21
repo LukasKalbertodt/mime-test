@@ -9,36 +9,43 @@ const getDefaultMime = () => {
   const videoOnly = document.getElementById('videoOnlyInput');
   const withAudio = document.getElementById('withAudioInput');
 
-  let fn;
+  let fn = null;
   if (typeof videoOnly.captureStream === "function") {
     fn = 'captureStream';
   } else if (typeof videoOnly.mozCaptureStream === "function") {
     fn = 'mozCaptureStream';
+  }
+
+  let body;
+  if (fn) {
+    const getMime = elem => {
+      const stream = elem[fn]();
+      const rec = new MediaRecorder(stream);
+      const mime = rec.mimeType === "" ? "<i>unknown</i>" : `<code>${rec.mimeType}</code>`;
+      const aBitrate = Math.round(rec.audioBitsPerSecond / 1024);
+      const vBitrate = Math.round(rec.videoBitsPerSecond / 1024);
+      const bitrates = `(video ${vBitrate} KiBit/s, audio ${aBitrate} KiBit/s)`;
+
+      return `${mime} ${bitrates}`;
+    };
+
+    body = `
+      (Tested by creating a <code>MediaRecorder</code> with simple video streams)
+      <ul>
+        <li>Video only stream: ${getMime(videoOnly)}</li>
+        <li>Video+audio stream: ${getMime(withAudio)}</li>
+      </ul>
+    `;
   } else {
-    return `
+    body = `
       Can't check default MIME types as <code>captureStream</code> on
-      <code><video></code> elements is not supported. :(
+      <code>video</code> elements is not supported. :(
     `;
   }
 
-  const getMime = elem => {
-    const stream = elem[fn]();
-    const rec = new MediaRecorder(stream);
-    const mime = rec.mimeType === "" ? "<i>unknown<i>" : `<code>${rec.mimeType}</code>`;
-    const aBitrate = Math.round(rec.audioBitsPerSecond / 1024);
-    const vBitrate = Math.round(rec.videoBitsPerSecond / 1024);
-    const bitrates = `(video ${vBitrate} KiBit/s, audio ${aBitrate} KiBit/s)`;
-
-    return `${mime} ${bitrates}`;
-  };
-
   return `
     <h2>Default MIME-Types of <code>MediaRecorder</code></h2>
-    (Tested by creating a <code>MediaRecorder</code> with simple video streams)
-    <ul>
-      <li>Video only stream: ${getMime(videoOnly)}</li>
-      <li>Video+audio stream: ${getMime(withAudio)}</li>
-    </ul>
+    ${body}
   `;
 };
 
