@@ -13,15 +13,27 @@ const getMimeOfStream = async (stream, preRecord) => {
 
   preRecord();
   rec.start(100);
-  await new Promise(resolve => {
-    rec.ondataavailable = blob => {
-      rec.ondataavailable = null;
-      blobMime = blob.data.type;
-      resolve();
-    };
-  });
+  await Promise.race([
+    new Promise(resolve => {
+      rec.ondataavailable = blob => {
+        rec.ondataavailable = null;
+        blobMime = blob.data.type;
+        resolve();
+      };
+    }),
+    sleep(1000),
+  ]);
+
+  // Stop the recording
+  stream.getTracks().forEach(track => track.stop());
   if (rec.state === 'recording') {
     rec.stop();
+  }
+
+  // If "ondataavailable" was only triggered by us stopping the recording, we
+  // might need to wait here a bit.
+  if (blobMime === undefined) {
+    await sleep(50);
   }
 
   // Collect information
@@ -90,9 +102,6 @@ const getDefaultMime = async () => {
 
 const checkWebcamMime = async () => {
   const outDiv = document.getElementById('webcamStreamResults');
-  const stop = stream => {
-    stream.getTracks().forEach(track => track.stop());
-  };
 
   try {
     const withAudioStream = await navigator.mediaDevices.getUserMedia(
@@ -104,9 +113,6 @@ const checkWebcamMime = async () => {
       { video: true, audio: false }
     );
     const videoOnlyMime = await getMimeOfStream(videoOnlyStream, () => {});
-
-    stop(withAudioStream);
-    stop(videoOnlyStream);
 
     outDiv.innerHTML = `
       (Tested by creating a <code>MediaRecorder</code> with streams returned by
