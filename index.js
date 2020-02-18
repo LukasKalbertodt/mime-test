@@ -3,9 +3,12 @@ const sym = b => b
   ? '<span class="icon" style="color:green;">✔</span>'
   : '<span class="icon" style="color:red;">✘</span>';
 
+// An async function that resolves after `ms` milliseconds.
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // Checks the default MIME types of `MediaRecorder` for video only input and
 // audio+video input.
-const getDefaultMime = () => {
+const getDefaultMime = async () => {
   const videoOnly = document.getElementById('videoOnlyInput');
   const withAudio = document.getElementById('withAudioInput');
 
@@ -18,22 +21,46 @@ const getDefaultMime = () => {
 
   let body;
   if (fn) {
-    const getMime = elem => {
+    const getMime = async elem => {
       const stream = elem[fn]();
+
+      // Wait for the stream to be ready
+      while (!stream.active) {
+        await sleep(50);
+      }
+
+      // Start a recorder to get a data blob.
       const rec = new MediaRecorder(stream);
-      const mime = rec.mimeType === "" ? "<i>unknown</i>" : `<code>${rec.mimeType}</code>`;
+      let blobMime;
+
+      elem.play();
+      rec.start(100);
+      await new Promise(resolve => {
+        rec.ondataavailable = blob => {
+          rec.ondataavailable = null;
+          blobMime = blob.data.type;
+          resolve();
+        };
+      });
+      if (rec.state === 'recording') {
+        rec.stop();
+      }
+
+      // Collect information
+      const mimeType = blobMime || rec.mimeType;
+      const mimeOut = mimeType === "" ? "<i>unknown</i>" : `<code>${mimeType}</code>`;
       const aBitrate = Math.round(rec.audioBitsPerSecond / 1024);
       const vBitrate = Math.round(rec.videoBitsPerSecond / 1024);
       const bitrates = `(video ${vBitrate} KiBit/s, audio ${aBitrate} KiBit/s)`;
 
-      return `${mime} ${bitrates}`;
+      return `${mimeOut} ${bitrates}`;
     };
 
     body = `
       (Tested by creating a <code>MediaRecorder</code> with simple video streams)
       <ul>
-        <li>Video only stream: ${getMime(videoOnly)}</li>
-        <li>Video+audio stream: ${getMime(withAudio)}</li>
+        <li>Video only stream: ${await getMime(videoOnly)}</li>
+        <li>Video+audio stream: ${await getMime(withAudio)}</li>
       </ul>
     `;
   } else {
@@ -107,7 +134,7 @@ const getSupportedMimes = () => {
 }
 
 
-(() => {
+(async () => {
   // Base Support
   const isMediaRecorderSupported = typeof MediaRecorder !== 'undefined';
   const isUserCaptureSupported = 'mediaDevices' in navigator
@@ -137,7 +164,7 @@ const getSupportedMimes = () => {
   `;
 
   // MIME Types
-  const defaultMime = isMediaRecorderSupported ? getDefaultMime() : "";
+  const defaultMime = isMediaRecorderSupported ? await getDefaultMime() : "";
   const supportedMimes = isMediaRecorderSupported ? getSupportedMimes() : "";
 
   // Combine everything

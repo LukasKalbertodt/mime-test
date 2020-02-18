@@ -28,14 +28,23 @@
       td {
         padding: 1px 5px;
       }
+      code {
+        background-color: #fafafa;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0 2px;
+      }
     </style>
   </head>
   <body>
     <h1>Test MIME-Type Support of your MediaRecorder</h1>
-    <div id="results"></div>
+    <div id="results">
+      <b>Collecting data...</b><br/>
+      Please wait. If this message does not disappear after a few seconds, this tool is broken.
+    </div>
     <div style="visibility: hidden; height: 0;">
-      <video crossorigin="anonymous" src="video-only.mp4" id="videoOnlyInput" />
-      <video crossorigin="anonymous" src="with-audio.mp4" id="withAudioInput" />
+      <video crossorigin="anonymous" muted preload="auto" src="video-only.mp4" id="videoOnlyInput" />
+      <video crossorigin="anonymous" muted preload="auto" src="with-audio.mp4" id="withAudioInput" />
     </div>
     <script src="index.js"></script>
   </body>
