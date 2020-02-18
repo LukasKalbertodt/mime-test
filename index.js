@@ -7,11 +7,6 @@ const sym = b => b
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const getMimeOfStream = async (stream, preRecord) => {
-  // Wait for the stream to be ready
-  while (!stream.active) {
-    await sleep(50);
-  }
-
   // Start a recorder to get a data blob.
   const rec = new MediaRecorder(stream);
   let blobMime;
@@ -56,6 +51,10 @@ const getDefaultMime = async () => {
   if (fn) {
     const getMime = async elem => {
       const stream = elem[fn]();
+      // Wait for the stream to be ready
+      while (!stream.active) {
+        await sleep(50);
+      }
       return await getMimeOfStream(stream, () => elem.play());
     };
 
@@ -91,6 +90,10 @@ const getDefaultMime = async () => {
 
 const checkWebcamMime = async () => {
   const outDiv = document.getElementById('webcamStreamResults');
+  const stop = stream => {
+    stream.getTracks().forEach(track => track.stop());
+  };
+
   try {
     const withAudioStream = await navigator.mediaDevices.getUserMedia(
       { video: true, audio: true }
@@ -102,6 +105,8 @@ const checkWebcamMime = async () => {
     );
     const videoOnlyMime = await getMimeOfStream(videoOnlyStream, () => {});
 
+    stop(withAudioStream);
+    stop(videoOnlyStream);
 
     outDiv.innerHTML = `
       (Tested by creating a <code>MediaRecorder</code> with streams returned by
