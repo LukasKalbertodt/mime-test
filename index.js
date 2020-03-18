@@ -134,6 +134,13 @@ const checkWebcamMime = async () => {
   }
 };
 
+const checkMimeFromUser = event => {
+  const input = document.getElementById('mimeInput');
+  const output = document.getElementById('userMimeResult');
+
+  output.innerHTML = sym(MediaRecorder.isTypeSupported(input.value));
+};
+
 // Checks a bunch of popular MIME types.
 const getSupportedMimes = () => {
   const canCheckMime = 'isTypeSupported' in MediaRecorder;
@@ -171,6 +178,10 @@ const getSupportedMimes = () => {
 
     body = `
       (Tested with <code>MediaRecorder.isTypeSupported</code>)
+      <br>
+      <br>
+      Check custom: <input type="text" id="mimeInput" oninput="checkMimeFromUser()"></input>
+      <span id="userMimeResult"></span>
       <br>
       <br>
       <table>
