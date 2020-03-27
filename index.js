@@ -233,6 +233,11 @@ const getSupportedMimes = () => {
           </tr>
         </tbody>
       </table>
+      <p>
+        <b><code>navigator.userAgent</code></b>: <code>${navigator.userAgent}</code>
+        <br style="margin-bottom: 5px" />
+        <b><code>navigator.platform</code></b>: <code>${navigator.platform}</code>
+      </p>
     </div>
   `;
 
